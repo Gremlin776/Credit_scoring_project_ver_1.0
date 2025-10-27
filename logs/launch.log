@@ -1,0 +1,79 @@
+2025-10-27 23:13:04,592 - INFO - ==================================================
+2025-10-27 23:13:04,592 - INFO - ЗАПУСК ПРОЕКТА CREDIT SCORING
+2025-10-27 23:13:04,592 - INFO - ==================================================
+2025-10-27 23:13:04,593 - INFO - Виртуальное окружение активировано
+2025-10-27 23:13:04,593 - INFO - Создание структуры проекта...
+2025-10-27 23:13:04,594 - INFO - Структура проекта создана!
+2025-10-27 23:13:04,594 - INFO - Данные найдены
+2025-10-27 23:13:04,595 - INFO - Запуск EDA анализ...
+2025-10-27 23:13:06,363 - ERROR - EDA анализ завершен с ошибкой (код: 1)
+2025-10-27 23:13:06,364 - ERROR - EDA анализ ошибка: Traceback (most recent call last):
+2025-10-27 23:13:06,364 - ERROR - EDA анализ ошибка: File "C:\Users\Gigabyte\Desktop\PROJECT\DS\notebooks\01_eda.py", line 356, in <module>
+2025-10-27 23:13:06,364 - ERROR - EDA анализ ошибка: run_eda()
+2025-10-27 23:13:06,365 - ERROR - EDA анализ ошибка: ~~~~~~~^^
+2025-10-27 23:13:06,365 - ERROR - EDA анализ ошибка: File "C:\Users\Gigabyte\Desktop\PROJECT\DS\notebooks\01_eda.py", line 148, in run_eda
+2025-10-27 23:13:06,365 - ERROR - EDA анализ ошибка: print("\U0001f3af   EDA ")
+2025-10-27 23:13:06,365 - ERROR - EDA анализ ошибка: ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-10-27 23:13:06,365 - ERROR - EDA анализ ошибка: File "C:\Users\Gigabyte\AppData\Local\Programs\Python\Python313\Lib\encodings\cp1251.py", line 19, in encode
+2025-10-27 23:13:06,366 - ERROR - EDA анализ ошибка: return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+2025-10-27 23:13:06,366 - ERROR - EDA анализ ошибка: ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-10-27 23:13:06,366 - WARNING - Пропускаем EDA анализ из-за ошибок
+2025-10-27 23:13:06,366 - INFO - Запуск Подготовка данных...
+2025-10-27 23:13:08,358 - ERROR - Подготовка данных завершен с ошибкой (код: 1)
+2025-10-27 23:13:08,358 - ERROR - Подготовка данных ошибка: Traceback (most recent call last):
+2025-10-27 23:13:08,358 - ERROR - Подготовка данных ошибка: File "C:\Users\Gigabyte\Desktop\PROJECT\DS\src\data\make_dataset.py", line 92, in <module>
+2025-10-27 23:13:08,359 - ERROR - Подготовка данных ошибка: main()
+2025-10-27 23:13:08,359 - ERROR - Подготовка данных ошибка: ~~~~^^
+2025-10-27 23:13:08,359 - ERROR - Подготовка данных ошибка: File "C:\Users\Gigabyte\Desktop\PROJECT\DS\src\data\make_dataset.py", line 84, in main
+2025-10-27 23:13:08,359 - ERROR - Подготовка данных ошибка: print(f"\u2705   : {df.shape}")
+2025-10-27 23:13:08,360 - ERROR - Подготовка данных ошибка: ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-10-27 23:13:08,360 - ERROR - Подготовка данных ошибка: File "C:\Users\Gigabyte\AppData\Local\Programs\Python\Python313\Lib\encodings\cp1251.py", line 19, in encode
+2025-10-27 23:13:08,360 - ERROR - Подготовка данных ошибка: return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+2025-10-27 23:13:08,361 - ERROR - Подготовка данных ошибка: ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-10-27 23:13:08,361 - WARNING - Пропускаем Подготовка данных из-за ошибок
+2025-10-27 23:13:08,361 - INFO - Запуск Feature Engineering...
+2025-10-27 23:13:09,029 - ERROR - Feature Engineering завершен с ошибкой (код: 1)
+2025-10-27 23:13:09,029 - ERROR - Feature Engineering ошибка: Traceback (most recent call last):
+2025-10-27 23:13:09,029 - ERROR - Feature Engineering ошибка: File "C:\Users\Gigabyte\Desktop\PROJECT\DS\src\features\build_features.py", line 130, in main
+2025-10-27 23:13:09,030 - ERROR - Feature Engineering ошибка: df_with_features = feature_engineer.fit_transform(df)
+2025-10-27 23:13:09,030 - ERROR - Feature Engineering ошибка: File "C:\Users\Gigabyte\Desktop\PROJECT\DS\src\features\build_features.py", line 110, in fit_transform
+2025-10-27 23:13:09,030 - ERROR - Feature Engineering ошибка: print("\U0001f527 Feature Engineering...")
+2025-10-27 23:13:09,030 - ERROR - Feature Engineering ошибка: ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-10-27 23:13:09,030 - ERROR - Feature Engineering ошибка: File "C:\Users\Gigabyte\AppData\Local\Programs\Python\Python313\Lib\encodings\cp1251.py", line 19, in encode
+2025-10-27 23:13:09,030 - ERROR - Feature Engineering ошибка: return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+2025-10-27 23:13:09,031 - ERROR - Feature Engineering ошибка: ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-10-27 23:13:09,031 - ERROR - Feature Engineering ошибка: UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f527' in position 0: character maps to <undefined>
+2025-10-27 23:13:09,031 - WARNING - Пропускаем Feature Engineering из-за ошибок
+2025-10-27 23:13:09,031 - INFO - Запуск Обучение моделей...
+2025-10-27 23:13:09,031 - WARNING - Скрипт src/models/train_model.py не найден
+2025-10-27 23:13:09,031 - WARNING - Пропускаем Обучение моделей из-за ошибок
+2025-10-27 23:13:09,032 - INFO - Запуск Обучение пайплайна...
+2025-10-27 23:13:09,032 - WARNING - Скрипт src/models/train_pipeline.py не найден
+2025-10-27 23:13:09,032 - WARNING - Пропускаем Обучение пайплайна из-за ошибок
+2025-10-27 23:13:09,033 - INFO - Запуск MLflow и FastAPI...
+2025-10-27 23:13:09,044 - INFO - MLflow запущен: http://127.0.0.1:5000
+2025-10-27 23:13:09,045 - INFO - FastAPI запущен: http://127.0.0.1:8000
+2025-10-27 23:13:09,045 - INFO - Для остановки нажмите Ctrl+C
+2025-10-27 23:24:34,982 - INFO - ==================================================
+2025-10-27 23:24:34,982 - INFO - ЗАПУСК ПРОЕКТА CREDIT SCORING
+2025-10-27 23:24:34,983 - INFO - ==================================================
+2025-10-27 23:24:34,983 - INFO - Виртуальное окружение активировано
+2025-10-27 23:24:34,983 - INFO - Создание структуры проекта...
+2025-10-27 23:24:34,984 - INFO - Структура проекта создана!
+2025-10-27 23:24:34,984 - INFO - Данные найдены
+2025-10-27 23:24:34,984 - INFO - Запуск EDA анализ...
+2025-10-27 23:24:44,253 - INFO - EDA анализ завершен успешно
+2025-10-27 23:24:44,253 - INFO - Запуск Подготовка данных...
+2025-10-27 23:24:46,275 - INFO - Подготовка данных завершен успешно
+2025-10-27 23:24:46,275 - INFO - Запуск Feature Engineering...
+2025-10-27 23:24:47,008 - INFO - Feature Engineering завершен успешно
+2025-10-27 23:24:47,008 - INFO - Запуск Обучение моделей...
+2025-10-27 23:24:47,009 - WARNING - Скрипт src/models/train_model.py не найден
+2025-10-27 23:24:47,009 - WARNING - Пропускаем Обучение моделей из-за ошибок
+2025-10-27 23:24:47,009 - INFO - Запуск Обучение пайплайна...
+2025-10-27 23:24:47,009 - WARNING - Скрипт src/models/train_pipeline.py не найден
+2025-10-27 23:24:47,010 - WARNING - Пропускаем Обучение пайплайна из-за ошибок
+2025-10-27 23:24:47,010 - INFO - Запуск MLflow и FastAPI...
+2025-10-27 23:24:47,020 - INFO - MLflow запущен: http://127.0.0.1:5000
+2025-10-27 23:24:47,021 - INFO - FastAPI запущен: http://127.0.0.1:8000
+2025-10-27 23:24:47,021 - INFO - Для остановки нажмите Ctrl+C

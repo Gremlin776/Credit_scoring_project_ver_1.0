@@ -1,0 +1,64 @@
+stages:
+  prepare:
+    cmd: python src/data/make_dataset.py
+    deps:
+      - data/raw/UCI_Credit_Card.csv
+      - src/data/make_dataset.py
+    outs:
+      - data/processed/processed_data.csv
+      - data/processed/train.csv
+      - data/processed/test.csv
+
+  features:
+    cmd: python src/features/build_features.py
+    deps:
+      - data/processed/processed_data.csv
+      - src/features/build_features.py
+    outs:
+      - data/processed/data_with_features.csv
+
+  validate:
+    cmd: python src/data/validation.py
+    deps:
+      - data/processed/data_with_features.csv
+      - src/data/validation.py
+    metrics:
+      - reports/validation_metrics.json:
+          cache: false
+
+  train:
+    cmd: python src/models/train.py
+    deps:
+      - data/processed/data_with_features.csv
+      - src/models/train.py
+      - src/models/pipeline.py
+    params:
+      - model.random_forest.n_estimators
+      - model.random_forest.max_depth
+      - model.logistic.C
+      - model.logistic.max_iter
+    metrics:
+      - reports/training_metrics.json:
+          cache: false
+    outs:
+      - models/best_model
+      - mlruns/
+
+  test:
+    cmd: python -m pytest tests/ -v
+    deps:
+      - tests/
+      - src/
+    metrics:
+      - reports/test_metrics.json:
+          cache: false
+
+  monitor:
+    cmd: python src/monitoring/drift_detection.py
+    deps:
+      - data/processed/train.csv
+      - data/processed/test.csv
+      - src/monitoring/drift_detection.py
+    metrics:
+      - reports/drift_metrics.json:
+          cache: false

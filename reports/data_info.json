@@ -1,0 +1,16 @@
+{
+  "original_shape": [
+    30000,
+    24
+  ],
+  "train_shape": [
+    24000,
+    24
+  ],
+  "test_shape": [
+    6000,
+    24
+  ],
+  "default_rate_train": 0.22120833333333334,
+  "default_rate_test": 0.22116666666666668
+}
