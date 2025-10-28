@@ -1,0 +1,6 @@
+{
+  "best_experiment": "Gradient Boosting - GridSearch",
+  "best_score": 0.7770031176872512,
+  "model_type": "GradientBoostingClassifier",
+  "feature_importance": null
+}

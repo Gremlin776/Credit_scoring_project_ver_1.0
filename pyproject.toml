@@ -35,7 +35,20 @@ dev = [
 
 [tool.black]
 line-length = 88
-target-version = ['py39']
+target-version = ['py38']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+  | venv
+)/
+'''
 
 [tool.flake8]
 max-line-length = 88
@@ -43,12 +56,12 @@ extend-ignore = ["E203", "W503", "E501"]
 exclude = [".git", "__pycache__", "logs", "data", "models", "reports", "notebooks"]
 
 [tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q --cov=src --cov-report=html --cov-report=term-missing"
 testpaths = ["tests"]
-addopts = "--cov=src --cov-report=html --cov-report=term-missing -v"
-filterwarnings = [
-    "ignore::DeprecationWarning",
-    "ignore::FutureWarning"
-]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
 
 [build-system]
 requires = ["setuptools>=45", "wheel"]

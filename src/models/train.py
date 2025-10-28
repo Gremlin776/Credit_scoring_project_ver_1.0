@@ -1,21 +1,26 @@
+#!/usr/bin/env python3
+"""
+Скрипт обучения моделей с MLflow tracking
+"""
+
+import os
+import sys
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import train_test_split, GridSearchCV, StratifiedKFold
-from sklearn.metrics import roc_auc_score, precision_score, recall_score, f1_score, roc_curve, classification_report
 import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split, GridSearchCV, StratifiedKFold 
+from sklearn.metrics import classification_report, roc_auc_score, roc_curve, precision_score, recall_score, f1_score
 import mlflow
 import mlflow.sklearn
-from .pipeline import create_model_pipeline, get_feature_names
 import json
-import os
-import seaborn as sns
-import sys
-import io
 
-# Принудительно устанавливаем UTF-8 кодировку для Windows
-if sys.platform == "win32":
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='ignore')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='ignore')
+# Исправляем импорт - абсолютный путь
+try:
+    from src.models.pipeline import create_model_pipeline, get_feature_names
+except ImportError:
+    # Альтернативный вариант импорта
+    sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+    from models.pipeline import create_model_pipeline, get_feature_names
 
 def load_data_with_features():
     """Загрузка данных с фичами"""
@@ -29,15 +34,15 @@ def load_data_with_features():
         exclude_columns = ['default', 'AGE_GROUP']
         X = df.drop(columns=exclude_columns, errors='ignore')
         
-        print(f"✅ Данные загружены: {X.shape}")
+        print(f"Данные загружены: {X.shape}")
         return X, y
     except Exception as e:
-        print(f"❌ Ошибка загрузки данных: {e}")
+        print(f"Ошибка загрузки данных: {e}")
         return None, None
 
 def hyperparameter_tuning(pipeline, model_type, X_train, y_train):
     """Автоматический подбор гиперпараметров с помощью GridSearchCV"""
-    print(f"🔍 GridSearchCV для {model_type}...")
+    print(f"GridSearchCV для {model_type}...")
     
     param_grids = {
         'logistic': {
@@ -70,12 +75,12 @@ def hyperparameter_tuning(pipeline, model_type, X_train, y_train):
         
         grid_search.fit(X_train, y_train)
         
-        print(f"✅ Лучшие параметры для {model_type}: {grid_search.best_params_}")
-        print(f"✅ Лучший ROC-AUC: {grid_search.best_score_:.4f}")
+        print(f"Лучшие параметры для {model_type}: {grid_search.best_params_}")
+        print(f"Лучший ROC-AUC: {grid_search.best_score_:.4f}")
         
         return grid_search.best_estimator_, grid_search.best_params_
     else:
-        print(f"⚠️ Параметры для {model_type} не найдены, используется модель по умолчанию")
+        print(f"Параметры для {model_type} не найдены, используется модель по умолчанию")
         pipeline.fit(X_train, y_train)
         return pipeline, {}
 
@@ -93,51 +98,74 @@ def evaluate_model(model, X_test, y_test, feature_names=None):
         'accuracy': (y_pred == y_test).mean()
     }
     
-    # ROC curve
-    plt.figure(figsize=(15, 5))
+    roc_curve_path = None
     
-    plt.subplot(1, 3, 1)
-    fpr, tpr, _ = roc_curve(y_test, y_pred_proba)
-    plt.plot(fpr, tpr, label=f'ROC curve (AUC = {metrics["roc_auc"]:.3f})', linewidth=2)
-    plt.plot([0, 1], [0, 1], 'k--', alpha=0.5)
-    plt.xlim([0.0, 1.0])
-    plt.ylim([0.0, 1.05])
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')
-    plt.title('ROC Curve')
-    plt.legend(loc="lower right")
-    plt.grid(True, alpha=0.3)
-    
-    # Feature importance (если доступно)
-    plt.subplot(1, 3, 2)
-    if hasattr(model.named_steps['classifier'], 'feature_importances_') and feature_names:
-        importances = model.named_steps['classifier'].feature_importances_
-        indices = np.argsort(importances)[::-1][:10]  # Топ-10 фич
+    try:
+        # Создаем папку reports если не существует
+        os.makedirs('reports', exist_ok=True)
         
-        plt.barh(range(len(indices)), importances[indices], color='skyblue')
-        plt.yticks(range(len(indices)), [feature_names[i] for i in indices])
-        plt.xlabel('Feature Importance')
-        plt.title('Top 10 Feature Importances')
-        plt.gca().invert_yaxis()
-    
-    # Distribution of predictions
-    plt.subplot(1, 3, 3)
-    plt.hist(y_pred_proba[y_test == 0], bins=50, alpha=0.7, label='No Default', color='green')
-    plt.hist(y_pred_proba[y_test == 1], bins=50, alpha=0.7, label='Default', color='red')
-    plt.xlabel('Predicted Probability')
-    plt.ylabel('Frequency')
-    plt.title('Distribution of Predictions')
-    plt.legend()
-    
-    plt.tight_layout()
-    roc_curve_path = 'reports/model_evaluation.png'
-    plt.savefig(roc_curve_path, dpi=300, bbox_inches='tight')
-    plt.close()
+        # ROC curve
+        plt.figure(figsize=(15, 5))
+        
+        plt.subplot(1, 3, 1)
+        fpr, tpr, _ = roc_curve(y_test, y_pred_proba)
+        plt.plot(fpr, tpr, label=f'ROC curve (AUC = {metrics["roc_auc"]:.3f})', linewidth=2)
+        plt.plot([0, 1], [0, 1], 'k--', alpha=0.5)
+        plt.xlim([0.0, 1.0])
+        plt.ylim([0.0, 1.05])
+        plt.xlabel('False Positive Rate')
+        plt.ylabel('True Positive Rate')
+        plt.title('ROC Curve')
+        plt.legend(loc="lower right")
+        plt.grid(True, alpha=0.3)
+        
+        # Feature importance (если доступно)
+        plt.subplot(1, 3, 2)
+        if hasattr(model.named_steps['classifier'], 'feature_importances_') and feature_names:
+            importances = model.named_steps['classifier'].feature_importances_
+            indices = np.argsort(importances)[::-1][:10]  # Топ-10 фич
+            
+            plt.barh(range(len(indices)), importances[indices], color='skyblue')
+            plt.yticks(range(len(indices)), [feature_names[i] for i in indices])
+            plt.xlabel('Feature Importance')
+            plt.title('Top 10 Feature Importances')
+            plt.gca().invert_yaxis()
+        
+        # Distribution of predictions
+        plt.subplot(1, 3, 3)
+        plt.hist(y_pred_proba[y_test == 0], bins=50, alpha=0.7, label='No Default', color='green')
+        plt.hist(y_pred_proba[y_test == 1], bins=50, alpha=0.7, label='Default', color='red')
+        plt.xlabel('Predicted Probability')
+        plt.ylabel('Frequency')
+        plt.title('Distribution of Predictions')
+        plt.legend()
+        
+        plt.tight_layout()
+        roc_curve_path = 'reports/model_evaluation.png'
+        plt.savefig(roc_curve_path, dpi=300, bbox_inches='tight')
+        plt.close()
+        
+    except Exception as e:
+        print(f"Предупреждение: не удалось создать графики: {e}")
+        roc_curve_path = None
     
     # Classification report
     class_report = classification_report(y_test, y_pred, output_dict=True)
     
     return metrics, roc_curve_path, class_report
+
+def safe_mlflow_log_artifact(file_path):
+    """Безопасное логирование артефактов в MLflow"""
+    try:
+        if file_path and os.path.exists(file_path):
+            mlflow.log_artifact(file_path)
+            return True
+        else:
+            print(f"Предупреждение: файл не существует: {file_path}")
+            return False
+    except Exception as e:
+        print(f"Предупреждение: не удалось залогировать артефакт {file_path}: {e}")
+        return False
 
 def train_experiment():
     """Проведение экспериментов с учетом EDA insights и GridSearchCV"""
@@ -151,8 +179,8 @@ def train_experiment():
         X, y, test_size=0.2, random_state=42, stratify=y
     )
     
-    print(f"📊 Training set: {X_train.shape}, Test set: {X_test.shape}")
-    print(f"📊 Default rate in train: {y_train.mean():.3f}, test: {y_test.mean():.3f}")
+    print(f"Training set: {X_train.shape}, Test set: {X_test.shape}")
+    print(f"Default rate in train: {y_train.mean():.3f}, test: {y_test.mean():.3f}")
     
     # Эксперименты с GridSearchCV
     experiments = [
@@ -193,12 +221,24 @@ def train_experiment():
     best_experiment = None
     
     # Настройка MLflow
-    mlflow.set_tracking_uri("mlruns")
-    mlflow.set_experiment("Credit Scoring Experiments")
+    try:
+        mlflow.set_tracking_uri("mlruns")
+        mlflow.set_experiment("Credit Scoring Experiments")
+        mlflow_available = True
+    except Exception as e:
+        print(f"Предупреждение: MLflow недоступен: {e}")
+        mlflow_available = False
     
     for exp in experiments:
-        with mlflow.start_run(run_name=exp['name']):
-            print(f"\n🎯 Эксперимент: {exp['name']}")
+        # Используем контекст MLflow только если он доступен
+        if mlflow_available:
+            mlflow_context = mlflow.start_run(run_name=exp['name'])
+            mlflow_context.__enter__()
+        else:
+            mlflow_context = None
+        
+        try:
+            print(f"\nЭксперимент: {exp['name']}")
             
             # Создание базового пайплайна
             pipeline = create_model_pipeline(exp['model_type'], **exp['base_params'])
@@ -209,18 +249,30 @@ def train_experiment():
                     pipeline, exp['model_type'], X_train, y_train
                 )
                 # Логирование лучших параметров
-                for param, value in best_params.items():
-                    mlflow.log_param(param, value)
+                if mlflow_available:
+                    for param, value in best_params.items():
+                        try:
+                            mlflow.log_param(param, value)
+                        except Exception as e:
+                            print(f"Предупреждение: не удалось залогировать параметр {param}: {e}")
             else:
                 model = pipeline
                 model.fit(X_train, y_train)
                 # Логирование базовых параметров
-                for param, value in exp['base_params'].items():
-                    mlflow.log_param(param, value)
+                if mlflow_available:
+                    for param, value in exp['base_params'].items():
+                        try:
+                            mlflow.log_param(param, value)
+                        except Exception as e:
+                            print(f"Предупреждение: не удалось залогировать параметр {param}: {e}")
             
             # Логирование типа модели
-            mlflow.log_param('model_type', exp['model_type'])
-            mlflow.log_param('use_grid_search', exp['use_grid_search'])
+            if mlflow_available:
+                try:
+                    mlflow.log_param('model_type', exp['model_type'])
+                    mlflow.log_param('use_grid_search', exp['use_grid_search'])
+                except Exception as e:
+                    print(f"Предупреждение: не удалось залогировать параметры модели: {e}")
             
             # Получение имен фич для анализа
             try:
@@ -234,74 +286,99 @@ def train_experiment():
             )
             
             # Логирование метрик
-            for metric_name, metric_value in metrics.items():
-                mlflow.log_metric(metric_name, metric_value)
-                print(f"   {metric_name}: {metric_value:.4f}")
+            if mlflow_available:
+                for metric_name, metric_value in metrics.items():
+                    try:
+                        mlflow.log_metric(metric_name, metric_value)
+                    except Exception as e:
+                        print(f"Предупреждение: не удалось залогировать метрику {metric_name}: {e}")
+            
+            print(f"   ROC AUC: {metrics['roc_auc']:.4f}")
+            print(f"   Precision: {metrics['precision']:.4f}")
+            print(f"   Recall: {metrics['recall']:.4f}")
+            print(f"   F1-Score: {metrics['f1']:.4f}")
             
             # Логирование артефактов
-            mlflow.log_artifact(roc_curve_path)
+            if mlflow_available:
+                safe_mlflow_log_artifact(roc_curve_path)
+                
+                # Логирование classification report
+                try:
+                    with open('reports/classification_report.json', 'w') as f:
+                        json.dump(class_report, f, indent=2)
+                    safe_mlflow_log_artifact('reports/classification_report.json')
+                except Exception as e:
+                    print(f"Предупреждение: не удалось сохранить classification report: {e}")
+                
+                # Логирование модели
+                try:
+                    mlflow.sklearn.log_model(model, "model")
+                except Exception as e:
+                    print(f"Предупреждение: не удалось залогировать модель: {e}")
             
-            # Логирование classification report
-            with open('reports/classification_report.json', 'w') as f:
-                json.dump(class_report, f, indent=2)
-            mlflow.log_artifact('reports/classification_report.json')
-            
-            # Логирование модели
-            mlflow.sklearn.log_model(model, "model")
-            
-            print(f"✅ {exp['name']} - ROC AUC: {metrics['roc_auc']:.4f}")
+            print(f"{exp['name']} - ROC AUC: {metrics['roc_auc']:.4f}")
             
             # Сохранение лучшей модели
             if metrics['roc_auc'] > best_score:
                 best_score = metrics['roc_auc']
                 best_model = model
                 best_experiment = exp['name']
+                
+        finally:
+            # Всегда закрываем контекст MLflow
+            if mlflow_context:
+                mlflow_context.__exit__(None, None, None)
     
     # Сохранение лучшей модели
     if best_model is not None:
-        mlflow.sklearn.save_model(best_model, "models/best_model")
-        
-        # Сохранение информации о лучшей модели
-        model_info = {
-            'best_experiment': best_experiment,
-            'best_score': best_score,
-            'model_type': best_model.named_steps['classifier'].__class__.__name__,
-            'feature_importance': None
-        }
-        
-        # Если есть feature importance, сохраняем
-        if hasattr(best_model.named_steps['classifier'], 'feature_importances_'):
-            try:
-                feature_names = get_feature_names(best_model, X_train.columns)
-                importances = best_model.named_steps['classifier'].feature_importances_
-                feature_importance = dict(zip(feature_names, importances))
-                model_info['feature_importance'] = feature_importance
-                
-                # Визуализация важности признаков
-                plt.figure(figsize=(10, 8))
-                top_features = sorted(feature_importance.items(), key=lambda x: x[1], reverse=True)[:15]
-                features, importance_vals = zip(*top_features)
-                
-                plt.barh(range(len(features)), importance_vals, color='lightblue')
-                plt.yticks(range(len(features)), features)
-                plt.xlabel('Feature Importance')
-                plt.title('Top 15 Feature Importances - Best Model')
-                plt.gca().invert_yaxis()
-                plt.tight_layout()
-                plt.savefig('reports/best_model_feature_importance.png', dpi=300, bbox_inches='tight')
-                plt.close()
-                
-            except Exception as e:
-                print(f"⚠️ Ошибка получения feature importance: {e}")
-        
-        with open('reports/best_model_info.json', 'w') as f:
-            json.dump(model_info, f, indent=2)
-        
-        print(f"\n🏆 ЛУЧШАЯ МОДЕЛЬ")
-        print(f"   Эксперимент: {best_experiment}")
-        print(f"   ROC AUC: {best_score:.4f}")
-        print(f"   Тип модели: {model_info['model_type']}")
-        print(f"   Сохранена в: models/best_model")
+        try:
+            os.makedirs('models', exist_ok=True)
+            mlflow.sklearn.save_model(best_model, "models/best_model")
+            
+            # Сохранение информации о лучшей модели
+            model_info = {
+                'best_experiment': best_experiment,
+                'best_score': best_score,
+                'model_type': best_model.named_steps['classifier'].__class__.__name__,
+                'feature_importance': None
+            }
+            
+            # Если есть feature importance, сохраняем
+            if hasattr(best_model.named_steps['classifier'], 'feature_importances_'):
+                try:
+                    feature_names = get_feature_names(best_model, X_train.columns)
+                    importances = best_model.named_steps['classifier'].feature_importances_
+                    feature_importance = dict(zip(feature_names, importances))
+                    model_info['feature_importance'] = feature_importance
+                    
+                    # Визуализация важности признаков
+                    plt.figure(figsize=(10, 8))
+                    top_features = sorted(feature_importance.items(), key=lambda x: x[1], reverse=True)[:15]
+                    features, importance_vals = zip(*top_features)
+                    
+                    plt.barh(range(len(features)), importance_vals, color='lightblue')
+                    plt.yticks(range(len(features)), features)
+                    plt.xlabel('Feature Importance')
+                    plt.title('Top 15 Feature Importances - Best Model')
+                    plt.gca().invert_yaxis()
+                    plt.tight_layout()
+                    plt.savefig('reports/best_model_feature_importance.png', dpi=300, bbox_inches='tight')
+                    plt.close()
+                    
+                except Exception as e:
+                    print(f"Предупреждение: ошибка получения feature importance: {e}")
+            
+            with open('reports/best_model_info.json', 'w') as f:
+                json.dump(model_info, f, indent=2)
+            
+            print(f"\nЛУЧШАЯ МОДЕЛЬ")
+            print(f"   Эксперимент: {best_experiment}")
+            print(f"   ROC AUC: {best_score:.4f}")
+            print(f"   Тип модели: {model_info['model_type']}")
+            print(f"   Сохранена в: models/best_model")
+            
+        except Exception as e:
+            print(f"Предупреждение: не удалось сохранить лучшую модель: {e}")
 
 if __name__ == "__main__":
     train_experiment()

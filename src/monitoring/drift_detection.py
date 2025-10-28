@@ -8,11 +8,6 @@ from pathlib import Path
 import sys
 import io
 
-# Принудительно устанавливаем UTF-8 кодировку для Windows
-if sys.platform == "win32":
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='ignore')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='ignore')
-
 def calculate_psi(expected, actual, buckets=10):
     """Calculate Population Stability Index"""
     # Определяем границы бинов на основе тренировочных данных
@@ -38,7 +33,7 @@ def calculate_psi(expected, actual, buckets=10):
 
 def detect_drift():
     """Обнаружение дрифта в данных"""
-    print("🔍 Запуск мониторинга дрифта...")
+    print("Запуск мониторинга дрифта...")
     
     try:
         # Загрузка тренировочных данных (эталон)
@@ -66,7 +61,7 @@ def detect_drift():
                     print(f"   {feature}: PSI={psi:.4f}, KS-pvalue={ks_pvalue:.4f}")
                     
                 except Exception as e:
-                    print(f"   ⚠️ Ошибка для {feature}: {e}")
+                    print(f"Ошибка для {feature}: {e}")
                     continue
         
         # Дрифт в распределении целевой переменной
@@ -90,7 +85,7 @@ def detect_drift():
         with open('reports/drift_metrics.json', 'w') as f:
             json.dump(drift_metrics, f, indent=2)
         
-        print("\n📊 Результаты мониторинга дрифта:")
+        print("\n Результаты мониторинга дрифта:")
         print(f"   Статус дрифта: {drift_metrics['drift_status']}")
         print(f"   Признаков с высоким дрифтом: {len(high_drift_features)}")
         print(f"   Признаков со средним дрифтом: {len(medium_drift_features)}")
@@ -98,7 +93,7 @@ def detect_drift():
         return drift_metrics
         
     except Exception as e:
-        print(f"❌ Ошибка мониторинга дрифта: {e}")
+        print(f" Ошибка мониторинга дрифта: {e}")
         return {}
 
 def test_api_predictions():
@@ -140,20 +135,20 @@ def test_api_predictions():
         
         if response.status_code == 200:
             result = response.json()
-            print(f"   ✅ API тест: Успешно")
+            print(f"   API тест: Успешно")
             print(f"   Предсказание: {result}")
             return True
         else:
-            print(f"   ❌ API тест: Ошибка {response.status_code}")
+            print(f"   API тест: Ошибка {response.status_code}")
             return False
             
     except Exception as e:
-        print(f"   ❌ API тест: {e}")
+        print(f"   API тест: {e}")
         return False
 
 def main():
     """Основная функция мониторинга"""
-    print("🎯 ЗАПУСК СИСТЕМЫ МОНИТОРИНГА")
+    print("ЗАПУСК СИСТЕМЫ МОНИТОРИНГА")
     print("=" * 50)
     
     # Детекция дрифта данных
@@ -189,7 +184,7 @@ def main():
     with open('reports/monitoring_report.json', 'w') as f:
         json.dump(monitoring_report, f, indent=2)
     
-    print("\n📈 ОТЧЕТ МОНИТОРИНГА СОХРАНЕН")
+    print("\nОТЧЕТ МОНИТОРИНГА СОХРАНЕН")
     print(f"   Файл: reports/monitoring_report.json")
     print(f"   Рекомендации: {len(monitoring_report['recommendations'])}")
 

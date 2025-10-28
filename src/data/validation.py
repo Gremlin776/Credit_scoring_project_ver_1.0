@@ -7,11 +7,6 @@ import os
 import sys
 import io
 
-# Принудительно устанавливаем UTF-8 кодировку для Windows
-if sys.platform == "win32":
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='ignore')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='ignore')
-
 def create_validation_suite():
     """Создает расширенный набор правил для валидации данных"""
     context = ge.get_context()
@@ -102,7 +97,7 @@ def validate_data(df: pd.DataFrame) -> bool:
     }
     
     if not results.success:
-        print("❌ Валидация данных провалена:")
+        print("Валидация данных провалена:")
         for result in results.results:
             if not result.success:
                 failed_expectation = {
@@ -113,7 +108,7 @@ def validate_data(df: pd.DataFrame) -> bool:
                 validation_results['failed_expectations'].append(failed_expectation)
                 print(f"   - {result.expectation_config.expectation_type} для колонки {failed_expectation['column']}")
     else:
-        print("✅ Валидация данных пройдена успешно!")
+        print("Валидация данных пройдена успешно!")
     
     # Сохранение отчета о валидации
     os.makedirs('reports', exist_ok=True)
@@ -130,12 +125,12 @@ def main():
         result = validate_data(df)
         
         if result:
-            print("🎉 Все проверки пройдены!")
+            print("Все проверки пройдены!")
         else:
-            print("🔧 Требуется исправление данных")
+            print("Требуется исправление данных")
             
     except Exception as e:
-        print(f"❌ Ошибка валидации: {e}")
+        print(f"Ошибка валидации: {e}")
 
 if __name__ == "__main__":
     main()

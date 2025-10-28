@@ -3,10 +3,6 @@ import io
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-# Принудительно устанавливаем UTF-8 кодировку для Windows
-if sys.platform == "win32":
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='ignore')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='ignore')
 
 def test_training_components():
     """Быстрый тест компонентов обучения для CI/CD"""
@@ -20,7 +16,7 @@ def test_training_components():
         for model_type in ['logistic', 'random_forest']:
             pipeline = create_model_pipeline(model_type, random_state=42)
             assert pipeline is not None
-            print(f"✓ {model_type} pipeline created")
+            print(f" {model_type} pipeline created")
         
         # Тест feature engineering
         import pandas as pd
@@ -38,13 +34,13 @@ def test_training_components():
         feature_engineer = FeatureEngineer()
         result = feature_engineer.fit_transform(sample_data)
         assert result is not None
-        print("✓ Feature engineering works")
+        print(" Feature engineering works")
         
-        print("✓ All training components tested successfully")
+        print(" All training components tested successfully")
         return True
         
     except Exception as e:
-        print(f"✗ Test failed: {e}")
+        print(f" Test failed: {e}")
         return False
 
 if __name__ == "__main__":

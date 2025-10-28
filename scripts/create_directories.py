@@ -31,9 +31,9 @@ def create_project_structure():
     
     for directory in directories:
         Path(directory).mkdir(parents=True, exist_ok=True)
-        print(f"✅ Создана директория: {directory}")
+        print(f" Создана директория: {directory}")
     
-    print("🎯 Структура проекта создана!")
+    print(" Структура проекта создана!")
 
 if __name__ == "__main__":
     create_project_structure()

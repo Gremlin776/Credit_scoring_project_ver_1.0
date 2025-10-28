@@ -1,0 +1,23 @@
+# Testing
+pytest>=6.0
+pytest-cov>=2.0
+pytest-mock>=3.0
+
+# Code Quality
+flake8>=3.8
+black>=20.8
+isort>=5.0
+pre-commit>=2.0
+
+# Documentation
+sphinx>=4.0
+sphinx-rtd-theme>=1.0
+
+# Monitoring and ML
+scipy>=1.7.0
+great-expectations>=0.15.0
+mlflow>=2.0.0
+
+# API Testing
+httpx>=0.24.0
+fastapi[all]>=0.68.0

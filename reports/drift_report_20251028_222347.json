@@ -1,0 +1,8 @@
+{
+  "timestamp": "2025-10-28T22:23:47.236445",
+  "status": "analyzed",
+  "features_analyzed": [
+    {
+      "feature": "LIMIT_BAL",
+      "psi": 0.03432726270722776,
+      "drift_detected": 

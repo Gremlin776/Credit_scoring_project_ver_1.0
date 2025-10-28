@@ -6,13 +6,6 @@ from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.feature_selection import SelectKBest, f_classif
 import numpy as np
-import sys
-import io
-
-# Принудительно устанавливаем UTF-8 кодировку для Windows
-if sys.platform == "win32":
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='ignore')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='ignore')
 
 def create_feature_selection_pipeline(k=20):
     """Создание пайплайна с feature selection на основе EDA"""
@@ -98,5 +91,5 @@ def get_feature_names(pipeline, original_features):
         
         return selected_features
     except Exception as e:
-        print(f"⚠️ Ошибка получения имен фич: {e}")
+        print(f"Ошибка получения имен фич: {e}")
         return None

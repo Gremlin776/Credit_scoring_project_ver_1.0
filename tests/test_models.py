@@ -57,7 +57,7 @@ class TestModels:
             assert True
         except Exception as e:
             # В тестовом режиме могут быть ошибки из-за маленького набора данных
-            print(f"⚠️ Предупреждение при обучении: {e}")
+            print(f"Предупреждение при обучении: {e}")
             assert True  # Все равно считаем тест пройденным
 
 def test_feature_importance_calculation():
@@ -89,7 +89,7 @@ def test_feature_importance_calculation():
             assert all(imp >= 0 for imp in importances)
             
     except Exception as e:
-        print(f"⚠️ Предупреждение при тестировании feature importance: {e}")
+        print(f"Предупреждение при тестировании feature importance: {e}")
         assert True  # Все равно считаем тест пройденным
 
 if __name__ == "__main__":

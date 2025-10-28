@@ -1,0 +1,81 @@
+{
+  "timestamp": "2025-10-29T00:07:06.561699",
+  "status": "analyzed",
+  "features_analyzed": [
+    {
+      "feature": "LIMIT_BAL",
+      "psi": 0.03432726270722776,
+      "drift_detected": 0,
+      "reference_mean": 167484.32266666667,
+      "current_mean": 167539.08807338556
+    },
+    {
+      "feature": "SEX",
+      "psi": 0.0,
+      "drift_detected": 0,
+      "reference_mean": 1.6037333333333332,
+      "current_mean": 1.6037333333333332
+    },
+    {
+      "feature": "EDUCATION",
+      "psi": 0.0,
+      "drift_detected": 0,
+      "reference_mean": 1.8422666666666667,
+      "current_mean": 1.8422666666666667
+    },
+    {
+      "feature": "MARRIAGE",
+      "psi": 0.0,
+      "drift_detected": 0,
+      "reference_mean": 1.5572666666666666,
+      "current_mean": 1.5572666666666666
+    },
+    {
+      "feature": "AGE",
+      "psi": 0.0065646756724841385,
+      "drift_detected": 0,
+      "reference_mean": 35.4855,
+      "current_mean": 35.4740805806899
+    },
+    {
+      "feature": "PAY_0",
+      "psi": 0.0,
+      "drift_detected": 0,
+      "reference_mean": -0.0167,
+      "current_mean": -0.0167
+    },
+    {
+      "feature": "PAY_2",
+      "psi": 0.0,
+      "drift_detected": 0,
+      "reference_mean": -0.13376666666666667,
+      "current_mean": -0.13376666666666667
+    },
+    {
+      "feature": "PAY_3",
+      "psi": 0.0,
+      "drift_detected": 0,
+      "reference_mean": -0.1662,
+      "current_mean": -0.1662
+    },
+    {
+      "feature": "PAY_4",
+      "psi": 0.0,
+      "drift_detected": 0,
+      "reference_mean": -0.22066666666666668,
+      "current_mean": -0.22066666666666668
+    },
+    {
+      "feature": "PAY_5",
+      "psi": 0.0,
+      "drift_detected": 0,
+      "reference_mean": -0.2662,
+      "current_mean": -0.2662
+    }
+  ],
+  "summary": {
+    "total_features": 47,
+    "features_with_drift": 0,
+    "max_psi": 0.0
+  }
+}

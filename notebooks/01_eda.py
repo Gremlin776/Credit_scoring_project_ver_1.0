@@ -12,12 +12,13 @@ from scipy import stats
 import sys
 import io
 import warnings
+import os
+import json
+
 warnings.filterwarnings('ignore')
 
-# Принудительно устанавливаем UTF-8 кодировку для Windows
-if sys.platform == "win32":
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='ignore')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='ignore')
+# Отключаем интерактивный режим matplotlib
+plt.ioff()
 
 def calculate_imbalance_ratio(target_series):
     """Рассчитывает коэффициент дисбаланса классов"""
@@ -119,40 +120,40 @@ def generate_insights(eda_results):
     # Анализ дисбаланса
     imbalance_ratio = eda_results['imbalance_ratio']
     if imbalance_ratio < 0.3:
-        insights.append("🔴 ВЫСОКИЙ ДИСБАЛАНС КЛАССОВ - рекомендуется использовать class_weight='balanced' или oversampling")
+        insights.append(" ВЫСОКИЙ ДИСБАЛАНС КЛАССОВ - рекомендуется использовать class_weight='balanced' или oversampling")
     elif imbalance_ratio < 0.5:
-        insights.append("🟡 СРЕДНИЙ ДИСБАЛАНС КЛАССОВ - можно использовать стандартные методы")
+        insights.append(" СРЕДНИЙ ДИСБАЛАНС КЛАССОВ - можно использовать стандартные методы")
     else:
-        insights.append("🟢 НИЗКИЙ ДИСБАЛАНС КЛАССОВ - данные сбалансированы")
+        insights.append(" НИЗКИЙ ДИСБАЛАНС КЛАССОВ - данные сбалансированы")
     
     # Анализ корреляций
     high_corr_count = len(eda_results['high_corr_features'])
     medium_corr_count = len(eda_results['medium_corr_features'])
     
     if high_corr_count > 0:
-        insights.append(f"🔍 Обнаружено {high_corr_count} признаков с ВЫСОКОЙ корреляцией с целевой переменной")
+        insights.append(f" Обнаружено {high_corr_count} признаков с ВЫСОКОЙ корреляцией с целевой переменной")
     if medium_corr_count > 0:
-        insights.append(f"📊 Обнаружено {medium_corr_count} признаков со СРЕДНЕЙ корреляцией с целевой переменной")
+        insights.append(f" Обнаружено {medium_corr_count} признаков со СРЕДНЕЙ корреляцией с целевой переменной")
     
     if high_corr_count == 0 and medium_corr_count == 0:
-        insights.append("⚠️ Нет признаков с существенной корреляцией - возможно, требуется более сложное feature engineering")
+        insights.append(" Нет признаков с существенной корреляцией - возможно, требуется более сложное feature engineering")
     
     # Анализ проблем данных
     if len(eda_results['data_issues']) > 0:
-        insights.append("🚨 ОБНАРУЖЕНЫ ПРОБЛЕМЫ В ДАННЫХ - требуется предобработка")
+        insights.append(" ОБНАРУЖЕНЫ ПРОБЛЕМЫ В ДАННЫХ - требуется предобработка")
     else:
-        insights.append("✅ Данные в хорошем состоянии")
+        insights.append(" Данные в хорошем состоянии")
     
     # Анализ значимых признаков
     significant_features = [feature for feature, info in eda_results['feature_analysis'].items() 
                           if info['significant']]
-    insights.append(f"📈 {len(significant_features)} признаков имеют статистически значимые различия между классами")
+    insights.append(f" {len(significant_features)} признаков имеют статистически значимые различия между классами")
     
     return insights
 
 def run_eda():
     """Запуск полного EDA анализа с автоматическими выводами"""
-    print("🎯 ЗАПУСК АДАПТИВНОГО EDA АНАЛИЗА")
+    print(" ЗАПУСК АДАПТИВНОГО EDA АНАЛИЗА")
     print("=" * 60)
 
     # Создаем необходимые папки
@@ -166,9 +167,9 @@ def run_eda():
     # Загрузка данных
     try:
         df = pd.read_csv('data/raw/UCI_Credit_Card.csv')
-        print(f"✅ Данные загружены: {df.shape}")
+        print(f" Данные загружены: {df.shape}")
     except Exception as e:
-        print(f"❌ Ошибка загрузки данных: {e}")
+        print(f" Ошибка загрузки данных: {e}")
         return
     
     # Определяем целевую переменную
@@ -181,17 +182,17 @@ def run_eda():
                 target_column = col
                 break
         else:
-            print("❌ Не удалось найти целевую переменную")
+            print(" Не удалось найти целевую переменную")
             return
     
     # Базовая информация
-    print(f"\n📊 БАЗОВАЯ ИНФОРМАЦИЯ:")
+    print(f"\n БАЗОВАЯ ИНФОРМАЦИЯ:")
     print(f"Размер данных: {df.shape}")
     print(f"Целевая переменная: '{target_column}'")
     print(f"Типы данных:\n{df.dtypes.value_counts()}")
     
     # Анализ целевой переменной
-    print(f"\n🎯 АНАЛИЗ ЦЕЛЕВОЙ ПЕРЕМЕННОЙ:")
+    print(f"\n АНАЛИЗ ЦЕЛЕВОЙ ПЕРЕМЕННОЙ:")
     target_counts = df[target_column].value_counts()
     target_percent = df[target_column].value_counts(normalize=True) * 100
     
@@ -218,35 +219,56 @@ def run_eda():
     
     plt.tight_layout()
     plt.savefig('reports/target_distribution.png', dpi=300, bbox_inches='tight')
-    plt.show()
+    plt.close()  # Закрываем фигуру вместо show()
     
     # Корреляционный анализ
-    print(f"\n🔗 КОРРЕЛЯЦИОННЫЙ АНАЛИЗ:")
+    print(f"\n КОРРЕЛЯЦИОННЫЙ АНАЛИЗ:")
     top_correlations, high_corr_features, medium_corr_features = analyze_correlations(df, target_column)
     
     print("Топ-10 признаков по корреляции с целевой переменной:")
     for feature, corr in top_correlations.head(10).items():
-        significance = "🔴 ВЫСОКАЯ" if corr > 0.1 else "🟡 СРЕДНЯЯ" if corr > 0.05 else "⚪ НИЗКАЯ"
+        significance = " ВЫСОКАЯ" if corr > 0.1 else " СРЕДНЯЯ" if corr > 0.05 else " НИЗКАЯ"
         print(f"  {significance} {feature}: {corr:.4f}")
     
     # Визуализация матрицы корреляций
     numeric_columns = df.select_dtypes(include=[np.number]).columns
     if len(numeric_columns) > 1:
-        plt.figure(figsize=(12, 8))
+        plt.figure(figsize=(16, 12))  # Увеличиваем размер
+    
+        # Берем только числовые колонки (исключаем ID если есть)
+        numeric_columns = [col for col in numeric_columns if col != 'ID']
         corr_matrix = df[numeric_columns].corr()
-        
+    
         # Создаем маску для верхнего треугольника
         mask = np.triu(np.ones_like(corr_matrix, dtype=bool))
-        
-        sns.heatmap(corr_matrix, mask=mask, annot=True, cmap='coolwarm', center=0,
-                    square=True, fmt='.2f', cbar_kws={"shrink": .8})
-        plt.title('Матрица корреляций числовых признаков', fontsize=16)
+    
+        # Создаем heatmap с настройками шрифта
+        sns.heatmap(corr_matrix, 
+                    mask=mask, 
+                    annot=True, 
+                    cmap='coolwarm', 
+                    center=0,
+                    square=True, 
+                    fmt='.2f', 
+                    cbar_kws={"shrink": .8},
+                    annot_kws={
+                        'size': 8,           # Размер шрифта чисел
+                        'weight': 'bold',    # Жирный шрифт
+                        'color': 'black'     # Цвет текста
+                    })
+    
+        # Увеличиваем размер шрифта подписей
+        plt.xticks(fontsize=10, rotation=45, ha='right')
+        plt.yticks(fontsize=10, rotation=0)
+        plt.title('Матрица корреляций числовых признаков', fontsize=16, pad=20)
         plt.tight_layout()
+        
+        # Сохраняем с высоким DPI для качества
         plt.savefig('reports/correlation_matrix.png', dpi=300, bbox_inches='tight')
-        plt.show()
+        plt.close()  # Закрываем фигуру вместо show()
     
     # Анализ распределений числовых признаков
-    print(f"\n📈 АНАЛИЗ ЧИСЛОВЫХ ПРИЗНАКОВ:")
+    print(f"\n АНАЛИЗ ЧИСЛОВЫХ ПРИЗНАКОВ:")
     numeric_columns = df.select_dtypes(include=[np.number]).columns
     numeric_data = df[numeric_columns].describe()
     print(numeric_data)
@@ -266,10 +288,10 @@ def run_eda():
         
         plt.tight_layout()
         plt.savefig('reports/key_features_distributions.png', dpi=300, bbox_inches='tight')
-        plt.show()
+        plt.close()  # Закрываем фигуру вместо show()
     
     # Анализ категориальных признаков
-    print(f"\n📊 АНАЛИЗ КАТЕГОРИАЛЬНЫХ ПРИЗНАКОВ:")
+    print(f"\n АНАЛИЗ КАТЕГОРИАЛЬНЫХ ПРИЗНАКОВ:")
     categorical_columns = ['SEX', 'EDUCATION', 'MARRIAGE']
     available_categorical = [col for col in categorical_columns if col in df.columns]
     
@@ -281,16 +303,16 @@ def run_eda():
                 print(f"  {val}: {count} ({count/len(df)*100:.1f}%)")
     
     # Обнаружение проблем в данных
-    print(f"\n🔍 ДЕТЕКТИРОВАНИЕ ПРОБЛЕМ ДАННЫХ:")
+    print(f"\n ДЕТЕКТИРОВАНИЕ ПРОБЛЕМ ДАННЫХ:")
     data_issues = detect_data_issues(df)
     if len(data_issues) > 0:
         for issue in data_issues:
-            print(f"  ⚠️ {issue}")
+            print(f" ПРОБЛЕМА {issue}")
     else:
-        print("  ✅ Серьезных проблем не обнаружено")
+        print("   Серьезных проблем не обнаружено")
     
     # Статистический анализ признаков
-    print(f"\n📊 СТАТИСТИЧЕСКИЙ АНАЛИЗ ПРИЗНАКОВ:")
+    print(f"\n СТАТИСТИЧЕСКИЙ АНАЛИЗ ПРИЗНАКОВ:")
     feature_analysis = analyze_feature_distributions(df, target_column)
     significant_features = [feature for feature, info in feature_analysis.items() if info['significant']]
     
@@ -315,7 +337,7 @@ def run_eda():
     }
     
     # Генерация автоматических выводов
-    print(f"\n🎯 АВТОМАТИЧЕСКИЕ ВЫВОДЫ НА ОСНОВЕ ДАННЫХ:")
+    print(f"\n АВТОМАТИЧЕСКИЕ ВЫВОДЫ НА ОСНОВЕ ДАННЫХ:")
     print("=" * 50)
     
     insights = generate_insights(eda_results)
@@ -323,7 +345,7 @@ def run_eda():
         print(f"{i}. {insight}")
     
     # Детальные рекомендации
-    print(f"\n💡 РЕКОМЕНДАЦИИ ДЛЯ МОДЕЛИРОВАНИЯ:")
+    print(f"\n РЕКОМЕНДАЦИИ ДЛЯ МОДЕЛИРОВАНИЯ:")
     if imbalance_ratio < 0.3:
         print("  • Используйте class_weight='balanced' в моделях")
         print("  • Рассмотрите SMOTE или другие oversampling методы")
@@ -338,7 +360,6 @@ def run_eda():
         print("  • Обработайте выбросы и пропущенные значения")
     
     # Сохранение отчета EDA
-    import json
     os.makedirs('reports', exist_ok=True)
     with open('reports/eda_report.json', 'w', encoding='utf-8') as f:
         json.dump(eda_results, f, indent=2, default=str)
@@ -350,8 +371,8 @@ def run_eda():
         for insight in insights:
             f.write(f"• {insight}\n")
     
-    print(f"\n✅ EDA АНАЛИЗ ЗАВЕРШЕН!")
-    print(f"📁 Отчеты сохранены в папке reports/")
+    print(f"\n EDA АНАЛИЗ ЗАВЕРШЕН!")
+    print(f" Отчеты сохранены в папке reports/")
     print(f"   - eda_report.json (детальный анализ)")
     print(f"   - eda_insights.txt (автоматические выводы)")
     print(f"   - *.png (визуализации)")
@@ -359,5 +380,4 @@ def run_eda():
     return eda_results
 
 if __name__ == "__main__":
-    import os
     run_eda()

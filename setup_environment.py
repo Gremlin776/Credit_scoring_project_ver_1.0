@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
 Автоматическая настройка виртуального окружения для проекта
-Исправленная версия для Windows с проблемами кодировки
 """
 
 import os
@@ -16,30 +15,9 @@ class EnvironmentSetup:
         self.venv_path = self.project_root / 'venv'
         self.is_windows = platform.system() == 'Windows'
         
-        # Исправление кодировки для Windows
-        if self.is_windows:
-            try:
-                # Пробуем установить UTF-8 кодировку
-                sys.stdout.reconfigure(encoding='utf-8')
-            except:
-                pass
-    
-    def safe_print(self, message, emoji="🔧"):
-        """Безопасный вывод с обработкой Unicode"""
-        try:
-            # Пробуем вывести с emoji
-            print(f"{emoji} {message}")
-        except UnicodeEncodeError:
-            # Если не получается - выводим без emoji
-            try:
-                print(f">>> {message}")
-            except:
-                # Последняя попытка - простой вывод
-                print(message)
-    
-    def log(self, message, emoji="🔧"):
-        """Логирование с обработкой ошибок кодировки"""
-        self.safe_print(message, emoji)
+    def log(self, message, status="INFO"):
+        """Логирование"""
+        print(f"{status} {message}")
     
     def check_python_version(self):
         """Проверяет версию Python"""
@@ -59,9 +37,9 @@ class EnvironmentSetup:
             
         self.log("Создание виртуального окружения...")
         try:
-            subprocess.run([sys.executable, '-m', 'venv', 'venv'],  
-                         check=True, cwd=self.project_root,
-                         capture_output=True, text=True, encoding='utf-8')
+            subprocess.run([
+                sys.executable, '-m', 'venv', 'venv'
+            ], check=True, cwd=self.project_root, capture_output=True, text=True)
             self.log("Виртуальное окружение создано", "OK")
             return True
         except subprocess.CalledProcessError as e:
@@ -71,103 +49,51 @@ class EnvironmentSetup:
     def get_venv_python(self):
         """Возвращает путь к Python в виртуальном окружении"""
         if self.is_windows:
-            return self.venv_path / 'Scripts' / 'python.exe'
+            python_path = self.venv_path / 'Scripts' / 'python.exe'
         else:
-            return self.venv_path / 'bin' / 'python'
-    
-    def get_venv_pip(self):
-        """Возвращает путь к pip в виртуальном окружении"""
-        if self.is_windows:
-            return self.venv_path / 'Scripts' / 'pip.exe'
-        else:
-            return self.venv_path / 'bin' / 'pip'
-    
-    def upgrade_pip(self):
-        """Обновляет pip в виртуальном окружении"""
-        python = self.get_venv_python()
-        self.log("Обновление pip...")
-        try:
-            result = subprocess.run(
-                [str(python), '-m', 'pip', 'install', '--upgrade', 'pip'], 
-                check=True, 
-                capture_output=True, 
-                text=True,
-                encoding='utf-8', 
-                errors='ignore',
-                timeout=120
-            )
-            self.log("pip обновлен", "OK")
-            return True
-        except subprocess.CalledProcessError as e:
-            self.log(f"Не удалось обновить pip: {e.stderr if e.stderr else e.stdout}", "WARN")
-            return True
-        except subprocess.TimeoutExpired:
-            self.log("Таймаут обновления pip", "WARN")
-            return True
-        except Exception as e:
-            self.log(f"Ошибка обновления pip: {e}", "WARN")
-            return True
+            python_path = self.venv_path / 'bin' / 'python'
+        
+        if not python_path.exists():
+            self.log(f"Python в venv не найден: {python_path}", "ERROR")
+            return None
+        return python_path
     
     def install_dependencies(self):
         """Устанавливает зависимости в виртуальном окружении"""
-        pip = self.get_venv_pip()
+        python = self.get_venv_python()
+        if python is None:
+            return False
+            
         requirements_file = self.project_root / 'requirements.txt'
         
-        self.log("Установка зависимостей...")
+        self.log("Установка зависимостей из requirements.txt...")
+        
         try:
-            # Сначала пробуем установить основные пакеты по одному
-            core_packages = [
-                'pip', 'setuptools', 'wheel',
-                'numpy', 'pandas', 'scikit-learn',
-                'matplotlib', 'seaborn', 'requests',
-                'fastapi', 'uvicorn', 'pydantic'
-            ]
+            result = subprocess.run([
+                str(python), '-m', 'pip', 'install', '-r', 'requirements.txt'
+            ], capture_output=True, text=True, timeout=300, cwd=self.project_root)
             
-            for package in core_packages:
-                try:
-                    result = subprocess.run([
-                    str(pip), 'install', '-r', str(requirements_file)
-                    ], 
-                    capture_output=True, 
-                    text=True, 
-                    timeout=300,
-                    encoding='utf-8', 
-                    errors='ignore'
-                    )
-                    if result.returncode == 0:
-                        self.log(f"Установлен: {package}", "OK")
-                    else:
-                        self.log(f"Ошибка установки {package}: {result.stderr[:100]}", "WARN")
-                except subprocess.TimeoutExpired:
-                    self.log(f"Таймаут установки: {package}", "WARN")
-                except Exception as e:
-                    self.log(f"Ошибка установки {package}: {e}", "WARN")
-
-            # Затем пробуем установить из requirements.txt если он есть
-            if requirements_file.exists():
-                try:
-                    result = subprocess.run([
-                    str(pip), 'install', '-r', str(requirements_file)
-                    ], 
-                    capture_output=True, 
-                    text=True, 
-                    timeout=300,
-                    encoding='utf-8', 
-                    errors='ignore'
-                    )
-
-                    if result.returncode == 0:
-                        self.log("Зависимости установлены", "OK")
-                        return True
-                    else:
-                        self.log(f"Ошибка установки из requirements.txt: {result.stderr[:200]}", "WARN")
-                except subprocess.TimeoutExpired:
-                    self.log("Таймаут установки зависимостей", "WARN")
-            
-            return True
+            if result.returncode == 0:
+                self.log("Основные зависимости установлены", "OK")
+                
+                # Проверяем установку ключевых пакетов
+                check_result = subprocess.run([
+                    str(python), '-c', 
+                    "import pytest, flake8, scipy, mlflow, fastapi; print('SUCCESS: Все пакеты установлены')"
+                ], capture_output=True, text=True, cwd=self.project_root)
+                
+                if "SUCCESS" in check_result.stdout:
+                    self.log(" Все ключевые пакеты установлены корректно", "OK")
+                else:
+                    self.log(" Некоторые пакеты могут быть не установлены", "WARN")
+                    
+                return True
+            else:
+                self.log(f"Ошибка установки зависимостей: {result.stderr[:200]}", "ERROR")
+                return False
                 
         except Exception as e:
-            self.log(f"Ошибка установки: {e}", "ERROR")
+            self.log(f"Ошибка установки зависимостей: {e}", "ERROR")
             return False
     
     def setup_project_structure(self):
@@ -185,7 +111,8 @@ class EnvironmentSetup:
             'src/monitoring',
             'tests',
             'notebooks',
-            'scripts'
+            'scripts',
+            '.github/workflows'
         ]
         
         for directory in directories:
@@ -197,9 +124,8 @@ class EnvironmentSetup:
     
     def create_activation_scripts(self):
         """Создает скрипты для активации окружения"""
-        # Windows batch file (без emoji)
+        # Windows batch file
         bat_content = """@echo off
-chcp 65001 >nul
 echo ========================================
 echo  Credit Scoring Project - Activation
 echo ========================================
@@ -209,12 +135,12 @@ call venv\\Scripts\\activate.bat
 echo.
 echo Virtual environment activated!
 echo To deactivate run: deactivate
-echo To run project: python run_project.py
+echo To run project: python launch.py
 echo.
 cmd /k
 """
         
-        # Linux/Mac shell script (без emoji)
+        # Linux/Mac shell script
         sh_content = """#!/bin/bash
 echo "========================================"
 echo " Credit Scoring Project - Activation"
@@ -225,7 +151,7 @@ source venv/bin/activate
 echo ""
 echo "Virtual environment activated!"
 echo "To deactivate run: deactivate"
-echo "To run project: python run_project.py"
+echo "To run project: python launch.py"
 exec bash
 """
         
@@ -242,88 +168,50 @@ exec bash
             self.log(f"Ошибка создания скриптов: {e}", "WARN")
             return True
     
-    def create_simple_requirements(self):
-        """Создает упрощенный requirements.txt если его нет"""
-        requirements_file = self.project_root / 'requirements.txt'
-        
-        if not requirements_file.exists():
-            simple_requirements = """# Core data science
-numpy>=1.21.0
-pandas>=1.5.0
-scikit-learn>=1.3.0
-scipy>=1.7.0
-
-# ML tools
-mlflow>=2.0.0
-
-# API
-fastapi>=0.68.0
-uvicorn>=0.15.0
-pydantic>=1.8.0
-
-# Data validation
-great-expectations>=0.15.0
-
-# Version control
-dvc>=3.0.0
-
-# Testing
-pytest>=6.0.0
-
-# Visualization
-matplotlib>=3.5.0
-seaborn>=0.11.0
-
-# Utilities
-requests>=2.25.0
-python-dotenv>=0.19.0
-"""
-            requirements_file.write_text(simple_requirements, encoding='utf-8')
-            self.log("Файл requirements.txt создан", "OK")
-        
-        return True
-    
     def verify_installation(self):
         """Проверяет установку ключевых пакетов"""
         python = self.get_venv_python()
+        if python is None:
+            return False
+            
         test_script = """
-import sys
 try:
     import pandas as pd
+    print("SUCCESS: pandas imported")
+    
     import numpy as np
-    print("SUCCESS: pandas and numpy imported")
+    print("SUCCESS: numpy imported")
     
-    try:
-        import sklearn
-        print("SUCCESS: scikit-learn imported")
-    except:
-        print("WARNING: scikit-learn not available")
+    import sklearn
+    print("SUCCESS: scikit-learn imported")
     
-    try:
-        import fastapi
-        print("SUCCESS: fastapi imported")
-    except:
-        print("WARNING: fastapi not available")
-        
-    sys.exit(0)
+    import mlflow
+    print("SUCCESS: mlflow imported")
+    
+    import pytest
+    print("SUCCESS: pytest imported")
+    
+    import flake8
+    print("SUCCESS: flake8 imported")
+    
+    import scipy
+    print("SUCCESS: scipy imported")
+    
+    print("ALL_CHECKS_PASSED")
 except ImportError as e:
     print(f"FAILED: {e}")
-    sys.exit(1)
 """
         
         try:
             result = subprocess.run([
                 str(python), '-c', test_script
-            ], capture_output=True, text=True, timeout=30)
+            ], capture_output=True, text=True, timeout=30, cwd=self.project_root)
             
-            if result.returncode == 0:
-                self.log("Проверка зависимостей пройдена", "OK")
-                for line in result.stdout.split('\n'):
-                    if line.strip():
-                        self.log(line.strip(), "INFO")
+            if "ALL_CHECKS_PASSED" in result.stdout:
+                self.log(" Проверка зависимостей пройдена", "OK")
                 return True
             else:
-                self.log(f"Проверка не пройдена: {result.stdout}", "WARN")
+                self.log(f" Проверка не пройдена: {result.stdout}", "WARN")
                 return False
         except Exception as e:
             self.log(f"Ошибка проверки: {e}", "WARN")
@@ -331,17 +219,15 @@ except ImportError as e:
     
     def run(self):
         """Запускает полную настройку"""
-        self.safe_print("НАСТРОЙКА ВИРТУАЛЬНОГО ОКРУЖЕНИЯ")
-        self.safe_print("==========================================")
+        self.log("НАСТРОЙКА ВИРТУАЛЬНОГО ОКРУЖЕНИЯ")
+        self.log("==========================================")
         
         if not self.check_python_version():
             return False
         
         steps = [
             ("Создание структуры проекта", self.setup_project_structure),
-            ("Создание requirements.txt", self.create_simple_requirements),
             ("Создание виртуального окружения", self.create_venv),
-            ("Обновление pip", self.upgrade_pip),
             ("Установка зависимостей", self.install_dependencies),
             ("Создание скриптов активации", self.create_activation_scripts),
             ("Проверка установки", self.verify_installation)
@@ -349,26 +235,31 @@ except ImportError as e:
         
         for step_name, step_func in steps:
             self.log(f"{step_name}...")
-            if not step_func():
+            success = step_func()
+            if not success and step_name == "Установка зависимостей":
+                self.log("Продолжаем без некоторых зависимостей", "WARN")
+                continue
+            elif not success:
                 self.log(f"Прервано на шаге: {step_name}", "ERROR")
                 return False
         
-        self.safe_print("==========================================")
-        self.safe_print("НАСТРОЙКА ЗАВЕРШЕНА УСПЕШНО!", "SUCCESS")
-        self.safe_print("")
-        self.safe_print("Следующие шаги:")
-        self.safe_print("1. Активируйте виртуальное окружение:")
+        self.log("==========================================")
+        self.log(" НАСТРОЙКА ЗАВЕРШЕНА!", "SUCCESS")
+        self.log("Следующие шаги:")
+        self.log("1. Активируйте виртуальное окружение:")
         
         if self.is_windows:
-            self.safe_print("   - Запустите: activate_env.bat")
-            self.safe_print("   - Или: venv\\Scripts\\activate")
+            self.log("   - Запустите: activate_env.bat")
+            self.log("   - Или: source venv\\Scripts\\activate")
         else:
-            self.safe_print("   - Запустите: source activate_env.sh") 
-            self.safe_print("   - Или: source venv/bin/activate")
+            self.log("   - Запустите: source activate_env.sh") 
+            self.log("   - Или: source venv/bin/activate")
         
-        self.safe_print("2. Запустите проект: python run_project.py")
-        self.safe_print("")
-        self.safe_print("Для деактивации: deactivate")
+        self.log("2. Запустите проект: python launch.py")
+        self.log("3. Откройте в браузере:")
+        self.log("   -  Документация: http://127.0.0.1:8000/docs")
+        self.log("   -  Дашборд: http://127.0.0.1:8000/dashboard")
+        self.log("   -  Эксперименты: http://127.0.0.1:5000")
         
         return True
 

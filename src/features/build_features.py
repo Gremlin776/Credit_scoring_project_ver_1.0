@@ -1,19 +1,12 @@
 import pandas as pd
 import numpy as np
 
-import sys
-import io
-
-# Принудительно устанавливаем UTF-8 кодировку для Windows
-if sys.platform == "win32":
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='ignore')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='ignore')
-
 class FeatureEngineer:
     """Класс для Feature Engineering с учетом insights из EDA"""
     
     def __init__(self):
         self.features_created = []
+        self.categorical_features = []  # Отдельно храним категориальные признаки
     
     def create_payment_features(self, df):
         """Создание признаков из истории платежей с учетом EDA корреляций"""
@@ -79,17 +72,18 @@ class FeatureEngineer:
     
     def create_demographic_features(self, df):
         """Создание демографических признаков с учетом EDA"""
-        # Биннинг возраста на основе EDA
+        # Биннинг возраста на основе EDA (сохраняем как категориальный)
         df['AGE_GROUP'] = pd.cut(df['AGE'], bins=[0, 25, 35, 45, 55, 100], 
                                 labels=['18-25', '26-35', '36-45', '46-55', '55+'])
         
-        # Признаки на основе EDA insights
+        # Признаки на основе EDA insights (только числовые)
         df['LIMIT_BAL_PER_AGE'] = df['LIMIT_BAL'] / (df['AGE'] + 1e-6)
         df['LIMIT_BAL_LOG'] = np.log1p(df['LIMIT_BAL'])
         
         self.features_created.extend([
-            'AGE_GROUP', 'LIMIT_BAL_PER_AGE', 'LIMIT_BAL_LOG'
+            'LIMIT_BAL_PER_AGE', 'LIMIT_BAL_LOG'
         ])
+        self.categorical_features.append('AGE_GROUP')  # Отдельно храним категориальные
         return df
     
     def create_risk_features(self, df):
@@ -115,7 +109,7 @@ class FeatureEngineer:
     
     def fit_transform(self, df):
         """Применение всех преобразований с учетом EDA insights"""
-        print("🔧 Feature Engineering...")
+        print("Feature Engineering...")
         
         df = self.create_payment_features(df)
         df = self.create_bill_amount_features(df)
@@ -123,7 +117,8 @@ class FeatureEngineer:
         df = self.create_demographic_features(df)
         df = self.create_risk_features(df)
         
-        print(f"✅ Создано {len(self.features_created)} новых признаков")
+        print(f"ОК Создано {len(self.features_created)} числовых признаков")
+        print(f"ОК Создано {len(self.categorical_features)} категориальных признаков")
         
         return df
 
@@ -132,19 +127,26 @@ def main():
     try:
         # Загрузка данных
         df = pd.read_csv('data/processed/processed_data.csv')
+        print(f"Исходные данные: {df.shape}")
         
         # Feature Engineering с учетом EDA
         feature_engineer = FeatureEngineer()
         df_with_features = feature_engineer.fit_transform(df)
         
-        # Анализ новых признаков
-        correlation_with_target = df_with_features.corr()['default'].sort_values(
-            key=abs, ascending=False
-        )
+        print(f"Данные после Feature Engineering: {df_with_features.shape}")
         
-        print("\n📊 Топ-10 признаков по корреляции с целевой переменной:")
-        for feature, corr in correlation_with_target.head(10).items():
-            print(f"   {feature}: {corr:.4f}")
+        # Анализ только числовых признаков для корреляции
+        numeric_columns = df_with_features.select_dtypes(include=[np.number]).columns
+        numeric_df = df_with_features[numeric_columns]
+        
+        if 'default' in numeric_df.columns:
+            correlation_with_target = numeric_df.corr()['default'].sort_values(
+                key=abs, ascending=False
+            )
+            
+            print("\nТоп-10 числовых признаков по корреляции с целевой переменной:")
+            for feature, corr in correlation_with_target.head(10).items():
+                print(f"   {feature}: {corr:.4f}")
         
         # Сохранение
         df_with_features.to_csv('data/processed/data_with_features.csv', index=False)
@@ -152,18 +154,26 @@ def main():
         # Сохранение информации о фичах
         features_info = {
             'total_features': len(df_with_features.columns),
-            'new_features_created': len(feature_engineer.features_created),
-            'top_correlated_features': correlation_with_target.head(10).to_dict()
+            'numeric_features_created': len(feature_engineer.features_created),
+            'categorical_features_created': len(feature_engineer.categorical_features),
+            'categorical_features': feature_engineer.categorical_features
         }
         
-        import json
-        with open('reports/features_info.json', 'w') as f:
-            json.dump(features_info, f, indent=2)
+        # Добавляем топ корреляций если есть
+        if 'default' in numeric_df.columns:
+            features_info['top_correlated_features'] = correlation_with_target.head(10).to_dict()
         
-        print("✅ Feature engineering завершен!")
+        import json
+        with open('reports/features_info.json', 'w', encoding='utf-8') as f:
+            json.dump(features_info, f, indent=2, ensure_ascii=False)
+        
+        print("Feature engineering завершен!")
+        print(f"Файл сохранен: data/processed/data_with_features.csv")
         
     except Exception as e:
-        print(f"❌ Ошибка feature engineering: {e}")
+        print(f"Ошибка feature engineering: {e}")
+        import traceback
+        print(f"Детали ошибки: {traceback.format_exc()}")
 
 if __name__ == "__main__":
     main()

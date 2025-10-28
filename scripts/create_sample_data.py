@@ -5,12 +5,6 @@ from pathlib import Path
 import sys
 import io
 
-# Принудительно устанавливаем UTF-8 кодировку для Windows
-if sys.platform == "win32":
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='ignore')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='ignore')
-
-
 def create_sample_data():
     """Создание реалистичных sample данных кредитного скоринга"""
     print("Создание sample данных для Credit Scoring...")
@@ -69,7 +63,7 @@ def create_sample_data():
     
     df.to_csv(output_dir / 'UCI_Credit_Card.csv', index=False)
     
-    print(f"✅ Созданы sample данные: {len(df)} записей")
+    print(f" Созданы sample данные: {len(df)} записей")
     print(f"   Распределение дефолтов: {df['default.payment.next.month'].mean():.2%}")
     print(f"   Файл: {output_dir / 'UCI_Credit_Card.csv'}")
     

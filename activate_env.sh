@@ -8,5 +8,5 @@ source venv/bin/activate
 echo ""
 echo "Virtual environment activated!"
 echo "To deactivate run: deactivate"
-echo "To run project: python run_project.py"
+echo "To run project: python launch.py"
 exec bash

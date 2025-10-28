@@ -6,12 +6,6 @@ import json
 import sys
 import io
 
-# Принудительно устанавливаем UTF-8 кодировку для Windows
-if sys.platform == "win32":
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='ignore')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='ignore')
-
-
 def load_raw_data():
     """Загрузка исходных данных"""
     df = pd.read_csv('data/raw/UCI_Credit_Card.csv')
@@ -89,12 +83,12 @@ def main():
     save_processed_data(df, train_df, test_df)
     
     # Отчет
-    print(f"✅ Итоговый размер данных: {df.shape}")
-    print(f"✅ Размер тренировочной выборки: {train_df.shape}")
-    print(f"✅ Размер тестовой выборки: {test_df.shape}")
-    print(f"✅ Процент дефолтов в тренировочной: {train_df['default'].mean():.3f}")
-    print(f"✅ Процент дефолтов в тестовой: {test_df['default'].mean():.3f}")
-    print("✅ Подготовка данных завершена!")
+    print(f"Итоговый размер данных: {df.shape}")
+    print(f"Размер тренировочной выборки: {train_df.shape}")
+    print(f"Размер тестовой выборки: {test_df.shape}")
+    print(f"Процент дефолтов в тренировочной: {train_df['default'].mean():.3f}")
+    print(f"Процент дефолтов в тестовой: {test_df['default'].mean():.3f}")
+    print("Подготовка данных завершена!")
 
 if __name__ == "__main__":
     main()
