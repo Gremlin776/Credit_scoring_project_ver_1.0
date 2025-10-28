@@ -91,13 +91,13 @@
 ## Архитектура проекта
 credit-scoring-project/
 ├── launch.py # Главный скрипт запуска всего пайплайна
--
+
 ├── setup_environment.py # Автоматическая настройка окружения
--
+
 ├── requirements.txt # Зависимости проекта
--
+
 ├── dvc.yaml # Конфигурация DVC пайплайна
--
+
 ├── Dockerfile # Конфигурация Docker контейнера
 
 ├── .github/workflows/ # GitHub Actions для CI/CD
