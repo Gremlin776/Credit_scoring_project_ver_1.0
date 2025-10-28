@@ -91,75 +91,106 @@
 ## Архитектура проекта
 credit-scoring-project/
 ├── launch.py # Главный скрипт запуска всего пайплайна
-
+├── 
 ├── setup_environment.py # Автоматическая настройка окружения
-
+├── 
 ├── requirements.txt # Зависимости проекта
-
+├── 
 ├── dvc.yaml # Конфигурация DVC пайплайна
-
+├── 
 ├── Dockerfile # Конфигурация Docker контейнера
-
+├── 
 ├── .github/workflows/ # GitHub Actions для CI/CD
-
+│ │
 │ └── ci-cd.yml
 │
 ├── src/ # Исходный код проекта
+│ │
 │ ├── data/ # Загрузка и подготовка данных
+│ │ │
 │ │ ├── make_dataset.py # Создание processed_data.csv
+│ │ │
 │ │ └── validation.py # Валидация данных
 │ │
 │ ├── features/ # Feature Engineering
+
 │ │ └── build_features.py # Создание признаков
 │ │
 │ ├── models/ # Обучение моделей
+│ │ │
 │ │ ├── train.py # Основное обучение с MLflow
+│ │ │
 │ │ ├── pipeline.py # Sklearn пайплайны
+│ │ │
 │ │ └── predict.py # Класс для предсказаний
 │ │
 │ ├── api/ # FastAPI приложение
+│ │ │
 │ │ └── app.py # Основное API приложение
 │ │
 │ └️── monitoring/ # Мониторинг дрифта
+│ │
 │ └── drift_detection.py # Детекция дрифта данных
 │
 ├── tests/ # Unit-тесты
+│ │
 │ ├── test_data.py # Тесты обработки данных
+│ │
 │ ├── test_features.py # Тесты feature engineering
+│ │
 │ └── test_models.py # Тесты моделей
 │
 ├── notebooks/ # Jupyter ноутбуки
 │ └── 01_eda.py # Автоматический EDA анализ
 │
 ├── scripts/ # Вспомогательные скрипты
+│ │
 │ ├── create_directories.py # Создание структуры проекта
+│ │
 │ ├── create_sample_data.py # Создание тестовых данных
+│ │
 │ ├── monitor_drift.py # Мониторинг дрифта
+│ │
 │ └── create_feature_importance.py # Создание графиков
 │
 ├── data/ # Данные (управляются через DVC)
+│ │
 │ ├── raw/ # Исходные данные
+│ │ │
 │ │ └── UCI_Credit_Card.csv # Основной датасет
+│ │
 │ └── processed/ # Обработанные данные
+│ │
 │ ├── processed_data.csv # Данные после очистки
+│ │
 │ └── data_with_features.csv # Данные с фичами
 │
 ├── models/ # Обученные модели
+│ │
 │ └── best_model/ # Лучшая модель
+│ │
 │ └── model.pkl # Сериализованная модель
 │
 ├── reports/ # Отчеты и визуализации
+│ │
 │ ├── target_distribution.png # Распределение целевой переменной
+│ │
 │ ├── correlation_matrix.png # Матрица корреляций
+│ │
 │ ├── model_evaluation.png # Оценка модели
+│ │
 │ ├── best_model_feature_importance.png # Важность признаков
+│ │
 │ ├── eda_report.json # Детальный отчет EDA
+│ │
 │ └── feature_importance.json # Данные важности признаков
 │
 ├── logs/ # Логи приложения
+│ │
 │ └── launch.log # Лог запуска проекта
 │
 └── mlruns/ # MLflow эксперименты
+│
 └── .../ # Запуски и артефакты
 
 text
